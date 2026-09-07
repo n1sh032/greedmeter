@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreedMeter - Stock Price Watchlist</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .add-ticker-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .add-ticker-section h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .search-container {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+        }
+
+        input::placeholder {
+            color: #888;
+        }
+
+        #suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(45, 45, 45, 0.98);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            margin-top: -1px;
+        }
+
+        #suggestions > div {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid rgba(76, 175, 80, 0.1);
+        }
+
+        #suggestions > div:hover {
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .threshold-container {
+            flex: 0 0 150px;
+        }
+
+        .threshold-container input {
+            width: 100%;
+        }
+
+        button[type="submit"] {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            align-self: center;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        .watchlist-section {
+            margin-top: 40px;
+        }
+
+        .watchlist-section h2 {
+            font-size: 1.5em;
+            margin-bottom: 25px;
+            color: #4CAF50;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .watchlist-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .watchlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .ticker-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .ticker-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(76, 175, 80, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 30px rgba(76, 175, 80, 0.2);
+        }
+
+        .ticker-symbol {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #4CAF50;
+            margin-bottom: 12px;
+        }
+
+        .ticker-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+
+        .ticker-info label {
+            color: #aaa;
+        }
+
+        .ticker-info value {
+            color: #e0e0e0;
+            font-weight: 500;
+        }
+
+        .ticker-price {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #81C784;
+            padding: 15px 0;
+            border-top: 1px solid rgba(76, 175, 80, 0.2);
+            border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+            margin: 15px 0;
+        }
+
+        .price-label {
+            font-size: 0.8em;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .remove-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+            background: transparent;
+            color: #e57373;
+            border: 1px solid rgba(229, 115, 115, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: rgba(229, 115, 115, 0.15);
+            border-color: #e57373;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .form-group {
+                flex-direction: column;
+            }
+
+            .threshold-container {
+                flex: 1;
+                width: 100%;
+            }
+
+            .watchlist-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .add-ticker-section {
+                padding: 20px;
+            }
+        }
+
+        #suggestions::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #suggestions::-webkit-scrollbar-track {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 4px;
+        }
+
+        #suggestions::-webkit-scrollbar-thumb {
+            background: rgba(76, 175, 80, 0.3);
+            border-radius: 4px;
+        }
+
+        #suggestions::-webkit-scrollbar-thumb:hover {
+            background: rgba(76, 175, 80, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 GreedMeter</h1>
+            <p>Monitor stock prices and get alerts when they hit your targets</p>
+        </header>
+
+        <div class="add-ticker-section">
+            <h2>Add Stock to Watchlist</h2>
+            <form action="/add" method="post" id="addForm">
+                <div class="form-group">
+                    <div class="search-container">
+                        <input type="text" id="tickerSearch" placeholder="Search company or ticker..." autocomplete="off" required>
+                        <input type="hidden" name="ticker" id="tickerValue">
+                        <div id="suggestions"></div>
+                    </div>
+                    <div class="threshold-container">
+                        <input type="number" step="0.1" name="threshold" placeholder="Alert %" required>
+                    </div>
+                    <button type="submit">Add to Watchlist</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="watchlist-section">
+            <h2>Your Watchlist</h2>
+            {% if rows %}
+                <div class="watchlist-grid">
+                    {% for row in rows %}
+                        <div class="ticker-card">
+                            <div class="ticker-symbol">{{ row.ticker }}</div>
+                            <div class="ticker-info">
+                                <label>Alert Threshold:</label>
+                                <value>{{ "%.2f"|format(row.threshold) }}%</value>
+                            </div>
+                            <div class="price-label">Current Price</div>
+                            <div class="ticker-price">
+                                {% if row.price %}
+                                    ${{ "%.2f"|format(row.price) }}
+                                {% else %}
+                                    <span style="color: #999;">Pending</span>
+                                {% endif %}
+                            </div>
+                            <form action="/delete" method="post">
+                                <input type="hidden" name="ticker" value="{{ row.ticker }}">
+                                <button type="submit" class="remove-btn">Remove</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="watchlist-empty">
+                    <p>No stocks on your watchlist yet. Add one to get started!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const searchBox = document.getElementById("tickerSearch");
+        const suggestionsBox = document.getElementById("suggestions");
+        const tickerValue = document.getElementById("tickerValue");
+
+        searchBox.addEventListener("input", async () => {
+            const query = searchBox.value;
+            if (query.length < 1) {
+                suggestionsBox.innerHTML = "";
+                return;
+            }
+
+            const response = await fetch(`/search_tickers?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            suggestionsBox.innerHTML = "";
+            data.results.forEach(t => {
+                const div = document.createElement("div");
+                div.textContent = `${t.symbol} - ${t.name}`;
+                div.addEventListener("click", () => {
+                    searchBox.value = `${t.symbol} - ${t.name}`;
+                    tickerValue.value = t.symbol;
+                    suggestionsBox.innerHTML = "";
+                });
+                suggestionsBox.appendChild(div);
+            });
+        });
+
+        document.addEventListener("click", (e) => {
+            if (e.target !== searchBox && e.target !== suggestionsBox) {
+                suggestionsBox.innerHTML = "";
+            }
+        });
+    </script>
+</body>
+</html>

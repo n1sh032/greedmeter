@@ -135,3 +135,12 @@ def record_alert(user_id, ticker):
     )
     conn.commit()
     conn.close()
+
+def remove_from_watchlist(user_id, ticker):
+    conn = sqlite3.connect(DB_FILE)
+    conn.execute(
+        "DELETE FROM watchlist WHERE user_id = ? AND ticker = ?",
+        (user_id, ticker)
+    )
+    conn.commit()
+    conn.close()
