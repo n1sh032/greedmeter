@@ -11,11 +11,10 @@ def get_price(ticker):
         print(f"couldnt get {ticker}: {e}")
         return None
 
-
 def get_prices_for(tickers):
     prices = {}
-    for ticker in tickers:
-        price = get_price(ticker)
-        if price is not None:
-            prices[ticker] = price
+    for t in tickers:
+        p = get_price(t)
+        if p is not None:
+            prices[t] = p
     return prices

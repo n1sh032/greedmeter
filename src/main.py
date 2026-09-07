@@ -4,22 +4,19 @@ from alert_checker import check_for_alert
 from notifier import send_alert
 from logger import log
 
-
 def run():
     init_db()
-
     users = get_all_users()
     if not users:
         log("no users set up yet")
         return
 
-    # figure out every unique ticker across all users, so we only fetch each one once
     all_tickers = set()
     user_watchlists = {}
     for user_id, chat_id in users:
-        watchlist = get_watchlist_for_user(user_id)
-        user_watchlists[user_id] = watchlist
-        for ticker, threshold in watchlist:
+        wl = get_watchlist_for_user(user_id)
+        user_watchlists[user_id] = wl
+        for ticker, threshold in wl:
             all_tickers.add(ticker)
 
     prices = get_prices_for(list(all_tickers))
@@ -29,8 +26,7 @@ def run():
         save_price(ticker, price)
 
     for user_id, chat_id in users:
-        watchlist = user_watchlists[user_id]
-        for ticker, threshold in watchlist:
+        for ticker, threshold in user_watchlists[user_id]:
             if ticker not in prices:
                 continue
             alert = check_for_alert(user_id, ticker, threshold, prices[ticker])
@@ -39,7 +35,6 @@ def run():
                 send_alert(alert, chat_id)
 
     log("done")
-
 
 if __name__ == "__main__":
     run()

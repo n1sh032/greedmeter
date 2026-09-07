@@ -198,6 +198,9 @@
             font-style: italic;
         }
 
+        .up { color: var(--up); }
+        .down { color: var(--down); }
+
         .remove-form {
             text-align: right;
         }
@@ -256,7 +259,16 @@
                 <tr>
                     <td class="ticker-symbol">{{ row.ticker }}</td>
                     <td class="num {% if not row.price %}price pending{% endif %}">
-                        {% if row.price %}${{ "%.2f"|format(row.price) }}{% else %}pending{% endif %}
+                        {% if row.price %}
+                            ${{ "%.2f"|format(row.price) }}
+                            {% if row.change is not none %}
+                                <span class="{% if row.change > 0 %}up{% elif row.change < 0 %}down{% endif %}">
+                                    ({{ "%+.2f"|format(row.change) }}%)
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            pending
+                        {% endif %}
                     </td>
                     <td class="num">{{ "%.1f"|format(row.threshold) }}%</td>
                     <td class="remove-form">
