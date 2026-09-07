@@ -4,7 +4,6 @@ from alert_checker import check_all
 from notifier import send_all_alerts
 from logger import log
 
-
 def run():
     init_db()
 

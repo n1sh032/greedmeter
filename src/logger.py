@@ -1,6 +1,8 @@
 from datetime import datetime
 
-LOG_FILE = "activity.log"
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOG_FILE = os.path.join(BASE_DIR, "logs", "activity.log")
 
 def log(message):
     timestamp = datetime.now().strftime("%d %b %Y, %I:%M %p")
