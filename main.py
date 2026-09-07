@@ -2,13 +2,14 @@ from price_fetcher import get_all_prices
 from database import init_db, save_price
 from alert_checker import check_all
 from notifier import send_all_alerts
+from logger import log
 
 
 def run():
-    init_db()  # makes sure the table exists before we try to use it
+    init_db()
 
     prices = get_all_prices()
-    print(f"got prices for {len(prices)} tickers")
+    log(f"checked prices, got {len(prices)} tickers")
 
     for ticker, price in prices.items():
         save_price(ticker, price)
@@ -16,10 +17,12 @@ def run():
     alerts = check_all(prices)
 
     if alerts:
-        print(f"sending {len(alerts)} alert(s)")
+        log(f"sending {len(alerts)} alert(s)")
+        for alert in alerts:
+            log(f"ALERT: {alert}")
         send_all_alerts(alerts)
     else:
-        print("no alerts this time")
+        log("no alerts this time")
 
 
 if __name__ == "__main__":

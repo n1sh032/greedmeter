@@ -17,7 +17,7 @@ markets = {
 active_market = "us_tech"
 WATCHLIST = markets[active_market]
 
-ALERT_THRESHOLD_PERCENT = 2  # % move that counts as worth an alert
+ALERT_THRESHOLD_PERCENT = 0.01  # % move that counts as worth an alert
 
 DB_FILE = "prices.db"
 CHECK_INTERVAL_MINUTES = 15
